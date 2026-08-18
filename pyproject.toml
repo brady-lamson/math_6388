@@ -6,12 +6,15 @@ authors = [
     {name = "Brady Lamson",email = "lamsonbrady@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13, <3.14"
 dependencies = [
     "jupyter (>=1.1.1,<2.0.0)",
     "torch (>=2.13.0,<3.0.0)",
     "polars (>=1.43.2,<2.0.0)",
-    "numpy (>=2.5.2,<3.0.0)"
+    "numpy (>=2.5.2,<3.0.0)",
+    "matplotlib (>=3.11.1,<4.0.0)",
+    "torchvision (>=0.28.0,<0.29.0)",
+    "pandas (>=3.0.5,<4.0.0)"
 ]
 
 
