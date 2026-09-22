@@ -15,7 +15,9 @@ dependencies = [
     "matplotlib (>=3.11.1,<4.0.0)",
     "torchvision (>=0.28.0,<0.29.0)",
     "pandas (>=3.0.5,<4.0.0)",
-    "pandas-stubs (>=3.0.5,<3.1.0)"
+    "pandas-stubs (>=3.0.5,<3.1.0)",
+    "scikit-learn (>=1.9.1,<2.0.0)",
+    "scipy-stubs (>=1.18.1,<1.19.0)"
 ]
 
 
