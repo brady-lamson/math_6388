@@ -1,3 +1,5 @@
+# Source: https://catalog.data.gov/dataset/building-energy-benchmarking-data-2015-present
+
 import polars as pl
 
 data_directory = "../../data/energy"
@@ -41,6 +43,40 @@ df = (
 with pl.Config(tbl_cols=-1):
     print(df.head(20))
 
+print("EPA Property Type Values ---")
+column = "EPAPropertyType"
+print(
+    df
+    .select(
+        pl.col(column).value_counts()
+    )
+    .unnest()
+    .sort(column)
+)
+
+print("Building Type Values ---")
+column = "BuildingType"
+print(
+    df
+    .select(
+        pl.col(column).value_counts()
+    )
+    .unnest()
+    .sort(column)
+)
+
+print("Neighborhood Values ---")
+column = "Neighborhood"
+with pl.Config(tbl_rows=-1):
+    print(
+        df
+        .select(
+            pl.col(column).value_counts()
+        )
+        .unnest()
+        .sort(column)
+    )
+
 print("\nPROCESSED DATA ---")
 dimensions_new = df.shape
 print(f"Rows: {dimensions_new[0]}\nColumns: {dimensions_new[1]}")
@@ -48,7 +84,7 @@ print(f"{round(dimensions_new[0]/dimensions[0] * 100, 5)}% of original {dimensio
 print(f"{round(dimensions_new[1]/dimensions[1] * 100, 5)}% of original {dimensions[1]} columns maintained.")
 
 
-write = True
+write = False
 if write:
     print("\nWRITE SILVER TABLES ---")
     df.write_parquet(f"{data_directory}/s_energy.parquet")

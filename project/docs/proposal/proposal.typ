@@ -49,3 +49,12 @@ For classification problems we of course care about probability thresholds. For 
 
 = Regression
 
+=== Background and Response
+
+For the regression portion of this project I'll be looking at official building electricity usage records from Seattle. Non-residental and multi family homes are required to report energy usage to the city of Seattle, and this dataset contains 9 years of data from a ton of buildings. The full dataset contains over $46,000$ records and over $40$ columns of information for each building. For the response, I'll be using a variable called *EUI(kBtu/sf)*. This gives us a measure of electrical intensity per square foot, which allows us to compare the efficiency of buildings of various sizes. This is far better than pure electrical usage, where all I would determine is that bigger properties use more electricity. 
+
+=== Variables
+
+I have a lot to choose from in this dataset. Currently, my interest is on a handful of columns. *BuildingType* is a categorical column that tells us if a property is multi family home, a school, hospital, etc. It has 7 categories total and all of the categories have enough frequency to be safe to use. 
+
+// TODO: MAKE THE VARIABLES A MARKDOWN TABLE 
