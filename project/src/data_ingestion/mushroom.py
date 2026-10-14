@@ -2,7 +2,7 @@ import polars as pl
 import json
 
 data_directory = "../../data/mushroom"
-filename = "agaricus-lepiota"
+filename = "b_agaricus-lepiota"
 df = pl.read_csv(f"{data_directory}/{filename}.data")
 
 with open(f"{data_directory}/value_map.json", "r") as f:
@@ -22,4 +22,4 @@ df = (
 )
 
 # # Write new dataframe
-df.write_csv(file=f"{data_directory}/mushroom_processed.csv")
+df.write_csv(file=f"{data_directory}/s_mushroom_processed.csv")

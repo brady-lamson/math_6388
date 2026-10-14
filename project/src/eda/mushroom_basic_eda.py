@@ -15,13 +15,18 @@ print(
     )
 )
 
-print("\nRESPONSE FREQUENCY ---")
-print(
-    df
-    .group_by("poisonous")
-    .agg(
-        pl.len().alias("freq"),
-        (pl.len() / dimensions[0]).alias("proportion")
-    )
-    .sort(by="proportion", descending=True)
-)
+frequency_breakdown=True
+
+if frequency_breakdown:
+    print("\nFREQUENCY BREAKDOWN ---")
+    for column in df.columns:
+        print(f"\n{column} frequency ---")
+        print(
+            df
+            .group_by(column)
+            .agg(
+                pl.len().alias("freq"),
+                (pl.len() / dimensions[0]).alias("proportion")
+            )
+            .sort(by=column, descending=True)
+        )
