@@ -1,6 +1,7 @@
 # Source: https://catalog.data.gov/dataset/building-energy-benchmarking-data-2015-present
 
 import polars as pl
+from src.helpers.eda import get_column_value_frequency
 
 data_directory = "../../data/energy"
 df = pl.read_csv(f"{data_directory}/b_seattle_energy_benchmark.csv", infer_schema_length=10000)
@@ -43,39 +44,13 @@ df = (
 with pl.Config(tbl_cols=-1):
     print(df.head(20))
 
-print("EPA Property Type Values ---")
-column = "EPAPropertyType"
-print(
-    df
-    .select(
-        pl.col(column).value_counts()
-    )
-    .unnest()
-    .sort(column)
+dupe_ids = (
+    get_column_value_frequency(df, column_name="OSEBuildingID")
+    .filter(pl.col("count") > 1)
 )
 
-print("Building Type Values ---")
-column = "BuildingType"
-print(
-    df
-    .select(
-        pl.col(column).value_counts()
-    )
-    .unnest()
-    .sort(column)
-)
-
-print("Neighborhood Values ---")
-column = "Neighborhood"
-with pl.Config(tbl_rows=-1):
-    print(
-        df
-        .select(
-            pl.col(column).value_counts()
-        )
-        .unnest()
-        .sort(column)
-    )
+if dupe_ids.shape[0] > 0:
+    print(dupe_ids)
 
 print("\nPROCESSED DATA ---")
 dimensions_new = df.shape
