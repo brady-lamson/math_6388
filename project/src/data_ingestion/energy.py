@@ -1,20 +1,26 @@
 # Source: https://catalog.data.gov/dataset/building-energy-benchmarking-data-2015-present
 
 import polars as pl
-from src.helpers.eda import get_column_value_frequency
+import argparse
+from helpers.eda import get_column_value_frequency
 
-data_directory = "../../data/energy"
+parser = argparse.ArgumentParser(description="Sets basic result writing options")
+parser.add_argument("-w", "--write", action="store_true", help="Write parquet file")
+parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
+args = parser.parse_args()
+
+data_directory = "project/data/energy"
 df = pl.read_csv(f"{data_directory}/b_seattle_energy_benchmark.csv", infer_schema_length=10000)
 
 print("\nPROCESSING DATA - ORIGINAL DATA ---")
 dimensions = df.shape
 print(f"Rows: {dimensions[0]}\nColumns: {dimensions[1]}")
-print(df.head())
+if args.verbose:
+    print(df.head())
 
 print("\nINITIAL COLUMNS ---")
 print(df.columns)
 
-print("\nCOLUMNS NARROWED DOWN---")
 columns = [
     "OSEBuildingID",
     "DataYear",
@@ -40,28 +46,56 @@ df = (
         "SiteEUI(kBtu/sf)": "EUI",
         "SiteEUIWN(kBtu/sf)": "EUI_WN"
     })
+    .with_columns(
+        # Process numeric columns read in as strings due to commas
+        (pl.col("PropertyGFABuildings").str.replace_all(pattern=",", value="").cast(pl.Int64).alias("PropertyGFABuildings")),
+        (pl.col("EUI").str.replace_all(pattern=",", value="").cast(pl.Float32).alias("EUI")),
+        (pl.col("EUI_WN").str.replace_all(pattern=",", value="").cast(pl.Float32).alias("EUI_WN")),
+        # Some year columns for purely diagnostic purposes
+        (pl.col("DataYear") == 2025).alias("Year2025"),
+        pl.concat_list(
+            pl.col("DataYear").sort().implode().over("OSEBuildingID")
+        )
+        .alias("DataYears"),
+    )
+    .with_columns((pl.col("DataYears").list.len()).alias("NumYears"))
 )
-with pl.Config(tbl_cols=-1):
-    print(df.head(20))
+num_columns_added = 3 # hard coded, for reporting later
 
-dupe_ids = (
-    get_column_value_frequency(df, column_name="OSEBuildingID")
-    .filter(pl.col("count") > 1)
+print("\nCOLUMNS NARROWED DOWN ---")
+print(df.columns)
+
+
+grain = ["OSEBuildingID", "DataYear"]
+print(f"\nChecking for duplicates at expected grain: <{grain}>")
+dupes = (
+    df
+    .group_by(grain)
+    .len()
+    .sort("len", descending=True)
+    .filter(pl.col("len") > 1)
 )
 
-if dupe_ids.shape[0] > 0:
-    print(dupe_ids)
+if dupes.shape[0] > 0:
+    print("[FAIL] Duplicates found ---")
+    print(dupes)
+else:
+    print("[PASSED] No duplicates found")
 
 print("\nPROCESSED DATA ---")
 dimensions_new = df.shape
 print(f"Rows: {dimensions_new[0]}\nColumns: {dimensions_new[1]}")
 print(f"{round(dimensions_new[0]/dimensions[0] * 100, 5)}% of original {dimensions[0]} rows maintained.")
-print(f"{round(dimensions_new[1]/dimensions[1] * 100, 5)}% of original {dimensions[1]} columns maintained.")
+print(f"{round((dimensions_new[1] - num_columns_added)/dimensions[1] * 100, 5)}% of original {dimensions[1]} columns maintained.")
 
+if args.verbose:
+    print(df.head(5))
 
-write = False
-if write:
+write = True
+if args.write:
     print("\nWRITE SILVER TABLES ---")
-    df.write_parquet(f"{data_directory}/s_energy.parquet")
+    path = f"{data_directory}/s_energy.parquet"
+    df.write_parquet(path)
+    print(f"TABLE WRITTEN TO {path}")
 else:
     print("Write is False, skipping write step")
