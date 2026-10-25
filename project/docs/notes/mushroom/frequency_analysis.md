@@ -5,6 +5,26 @@ This dataset is almost entirely categorical. Using them all would be maddening. 
 ## Takeaways
 
 - `stalk_root` is the only column w/ missing values. Trash it. 
+- `veil_type` is 100% "partial". Trash it.
+- Multiple columns are simply booleans. Only 2 categories.
+  - `poisonous` (the response)
+  - `gill_attachment`
+  - `gill_spacing`
+  - `gill_size`
+  - `stalk_shape`
+- Many of the `color` columns have a ton of categories, and many with extremely low frequencies.
+  - `cap_color`: 
+    - cinnamon - 44 
+    - purple - 16
+    - green - 16
+  - `cap_surface`: grooves has 4 rows
+  - `gill_color`: red, yellow, orange, green all concerningly low
+  - `stalk_coor_above_ring`: 
+    - red - 96
+    - cinnamon - 36
+    - yellow - 8
+  - Many other examples. Will need to examine relationship with response before thinking of solutions to avoid wasting time. 
+
 
 ## Copy pasted output
 
