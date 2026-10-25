@@ -1,12 +1,9 @@
 # Source: https://catalog.data.gov/dataset/building-energy-benchmarking-data-2015-present
 
 import polars as pl
-import argparse
+from helpers.argparse import get_args
 
-parser = argparse.ArgumentParser(description="Sets basic result writing options")
-parser.add_argument("-w", "--write", action="store_true", help="Write parquet file")
-parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
-args = parser.parse_args()
+args = get_args()
 
 data_directory = "project/data/energy"
 df = pl.read_csv(f"{data_directory}/b_seattle_energy_benchmark.csv", infer_schema_length=10000)
