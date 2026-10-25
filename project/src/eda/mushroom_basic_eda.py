@@ -1,8 +1,8 @@
 import polars as pl
 
-data_directory = "../../data/mushroom"
-filename = "mushroom_processed"
-df = pl.read_csv(f"{data_directory}/{filename}.csv")
+data_directory = "project/data/mushroom"
+filename = "s_mushroom"
+df = pl.read_parquet(f"{data_directory}/{filename}.parquet")
 
 print("\nDATA STRUCTURE ---")
 dimensions = df.shape
@@ -21,12 +21,13 @@ if frequency_breakdown:
     print("\nFREQUENCY BREAKDOWN ---")
     for column in df.columns:
         print(f"\n{column} frequency ---")
-        print(
-            df
-            .group_by(column)
-            .agg(
-                pl.len().alias("freq"),
-                (pl.len() / dimensions[0]).alias("proportion")
+        with pl.Config(tbl_rows=-1):
+            print(
+                df
+                .group_by(column)
+                .agg(
+                    pl.len().alias("freq"),
+                    (pl.len() / dimensions[0]).alias("proportion")
+                )
+                .sort(by="proportion", descending=True)
             )
-            .sort(by=column, descending=True)
-        )

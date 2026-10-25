@@ -43,10 +43,9 @@ if args.verbose:
     print(df.head())
 
 print("\nDATA WRITE STEP ---")
-write = True
 if args.write:
     print("\nWriting silver tables")
-    path = f"{data_directory}/s_mushroom_processed.parquet"
+    path = f"{data_directory}/s_mushroom.parquet"
     df.write_parquet(path)
     print(f"TABLE WRITTEN TO {path}")
 else:
