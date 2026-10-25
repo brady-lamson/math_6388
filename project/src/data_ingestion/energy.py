@@ -2,7 +2,6 @@
 
 import polars as pl
 import argparse
-from helpers.eda import get_column_value_frequency
 
 parser = argparse.ArgumentParser(description="Sets basic result writing options")
 parser.add_argument("-w", "--write", action="store_true", help="Write parquet file")
@@ -55,8 +54,7 @@ df = (
         (pl.col("DataYear") == 2025).alias("Year2025"),
         pl.concat_list(
             pl.col("DataYear").sort().implode().over("OSEBuildingID")
-        )
-        .alias("DataYears"),
+        ).alias("DataYears"),
     )
     .with_columns((pl.col("DataYears").list.len()).alias("NumYears"))
 )
@@ -64,7 +62,6 @@ num_columns_added = 3 # hard coded, for reporting later
 
 print("\nCOLUMNS NARROWED DOWN ---")
 print(df.columns)
-
 
 grain = ["OSEBuildingID", "DataYear"]
 print(f"\nChecking for duplicates at expected grain: <{grain}>")
@@ -84,16 +81,17 @@ else:
 
 print("\nPROCESSED DATA ---")
 dimensions_new = df.shape
-print(f"Rows: {dimensions_new[0]}\nColumns: {dimensions_new[1]}")
+print(f"Rows: {dimensions_new[0]}\nColumns: {dimensions_new[1]}\nNew Columns: {num_columns_added}")
 print(f"{round(dimensions_new[0]/dimensions[0] * 100, 5)}% of original {dimensions[0]} rows maintained.")
 print(f"{round((dimensions_new[1] - num_columns_added)/dimensions[1] * 100, 5)}% of original {dimensions[1]} columns maintained.")
 
 if args.verbose:
     print(df.head(5))
 
+print("\nDATA WRITE STEP ---")
 write = True
 if args.write:
-    print("\nWRITE SILVER TABLES ---")
+    print("\nWriting silver tables")
     path = f"{data_directory}/s_energy.parquet"
     df.write_parquet(path)
     print(f"TABLE WRITTEN TO {path}")
