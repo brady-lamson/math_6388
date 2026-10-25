@@ -1,34 +1,16 @@
 import polars as pl
-from src.helpers.eda import get_column_value_frequency
+from helpers.eda import get_column_value_frequency
 
-data_directory = "../../data/energy"
+# General idea here:
+# Look at 2025 buildings, any only in 2025 are guaranteed for test set
+# For others, stratify sample on the rest.
+# Then, look at buildings without 2025 rows. Pull random row for those IDs for train set.
+
+data_directory = "project/data/energy"
 df = pl.read_parquet(f"{data_directory}/s_energy.parquet")
 
-# Test over to tell when a building shows up multiple times
-print(
-    df
-    .with_columns(
-        pl.concat_list(
-            pl.col("DataYear").sort().implode().over("OSEBuildingID")
-        )
-        .alias("DataYears"),
-    )
-    .with_columns((pl.col("DataYears").list.len()).alias("NumYears"))
-)
+df_2025 = df.filter(pl.col("Year") == 2025)
+only_2025 = df_2025.filter(pl.col("NumYears") == 1)
+print(f"Number of buildings only in 2025: {only_2025.shape[0]}")
 
-# print(
-#     df
-#     .group_by("OSEBuildingID")
-#     .len()
-#     .sort("len", descending=True)
-# )
-#
-# grain_violations = (
-#     df
-#     .group_by("OSEBuildingID", "DataYear")
-#     .len()
-#     .filter(pl.col("len") > 1)
-# )
-#
-# if grain_violations.shape[0] > 0:
-#     print(grain_violations)
+all_id_years = df.select("ID")

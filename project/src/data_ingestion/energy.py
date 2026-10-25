@@ -43,7 +43,9 @@ df = (
     .select(columns)
     .rename({
         "SiteEUI(kBtu/sf)": "EUI",
-        "SiteEUIWN(kBtu/sf)": "EUI_WN"
+        "SiteEUIWN(kBtu/sf)": "EUI_WN",
+        "OSEBuildingID": "ID",
+        "DataYear": "Year"
     })
     .with_columns(
         # Process numeric columns read in as strings due to commas
@@ -51,19 +53,19 @@ df = (
         (pl.col("EUI").str.replace_all(pattern=",", value="").cast(pl.Float32).alias("EUI")),
         (pl.col("EUI_WN").str.replace_all(pattern=",", value="").cast(pl.Float32).alias("EUI_WN")),
         # Some year columns for purely diagnostic purposes
-        (pl.col("DataYear") == 2025).alias("Year2025"),
+        (pl.col("Year") == 2025).alias("Year2025"),
         pl.concat_list(
-            pl.col("DataYear").sort().implode().over("OSEBuildingID")
-        ).alias("DataYears"),
+            pl.col("Year").sort().implode().over("ID")
+        ).alias("Years"),
     )
-    .with_columns((pl.col("DataYears").list.len()).alias("NumYears"))
+    .with_columns((pl.col("Years").list.len()).alias("NumYears"))
 )
 num_columns_added = 3 # hard coded, for reporting later
 
 print("\nCOLUMNS NARROWED DOWN ---")
 print(df.columns)
 
-grain = ["OSEBuildingID", "DataYear"]
+grain = ["ID", "Year"]
 print(f"\nChecking for duplicates at expected grain: <{grain}>")
 dupes = (
     df
