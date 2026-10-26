@@ -19,7 +19,8 @@ df = (
         (pl.col("gill_attachment") == "attached").alias("gill_attached"),
         (pl.col("gill_spacing") == "crowded").alias("gill_spacing_crowded"),
         (pl.col("gill_size") == "narrow").alias("gill_size_narrow"),
-        (pl.col("stalk_shape") == "tapering").alias("stalk_shape_tapered")
+        (pl.col("stalk_shape") == "tapering").alias("stalk_shape_tapered"),
+        (pl.col("odor") != "none").alias("has_odor")
     )
     .drop(
         [
@@ -28,7 +29,10 @@ df = (
             "gill_attachment",
             "gill_spacing",
             "gill_size",
-            "stalk_shape"
+            "stalk_shape",
+            "veil_color",       # No meaningful relationship with response
+            "ring_number",      # Maybe revisit, but just doesn't appear meaningful enough
+            "gill_attached"     # Way too sparse for attached gills, basically 50/50 for bulk of rows
         ]
     )
 )
