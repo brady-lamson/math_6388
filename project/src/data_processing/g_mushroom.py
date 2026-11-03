@@ -56,6 +56,14 @@ df = (
     )
 )
 
+print("\nCONVERTING BOOLEANS TO INTEGERS ---")
+df = (
+    df
+    .with_columns(
+        pl.selectors.by_dtype(pl.Boolean).cast(pl.Int64)
+    )
+)
+
 if args.verbose:
     print("\nGOLD DATA STRUCTURE ---")
     df.glimpse()
