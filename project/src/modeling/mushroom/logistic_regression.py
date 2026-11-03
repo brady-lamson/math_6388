@@ -12,10 +12,17 @@ print("INGESTING AND PREPARING DATA ---")
 path = "project/data/mushroom"
 column = "spore_print_color"
 dtype = pl.Float32
-X_train = pl.read_parquet(f"{path}/g_mushroom_xtrain.parquet").to_dummies(columns=column, drop_first=True).to_torch(return_type="tensor", dtype=dtype)
-X_test = pl.read_parquet(f"{path}/g_mushroom_xtest.parquet").to_dummies(columns=column, drop_first=True).to_torch(return_type="tensor", dtype=dtype)
-y_train = pl.read_parquet(f"{path}/g_mushroom_ytrain.parquet").to_torch(return_type="tensor", dtype=dtype)
-y_test = pl.read_parquet(f"{path}/g_mushroom_ytest.parquet").to_torch(return_type="tensor", dtype=dtype)
+# Have separate polars variables for later model output csv saving ---
+# TODO: Actually save model output csvs like predictions and probabilities
+xtrain_pl = pl.read_parquet(f"{path}/g_mushroom_xtrain.parquet")
+xtest_pl = pl.read_parquet(f"{path}/g_mushroom_xtest.parquet")
+ytrain_pl = pl.read_parquet(f"{path}/g_mushroom_ytrain.parquet")
+ytest_pl = pl.read_parquet(f"{path}/g_mushroom_ytest.parquet")
+# Transform datasets for modeling ---
+X_train = xtrain_pl.to_dummies(columns=column, drop_first=True).to_torch(return_type="tensor", dtype=dtype)
+X_test = xtest_pl.to_dummies(columns=column, drop_first=True).to_torch(return_type="tensor", dtype=dtype)
+y_train = ytrain_pl.to_torch(return_type="tensor", dtype=dtype)
+y_test = ytest_pl.to_torch(return_type="tensor", dtype=dtype)
 
 if args.verbose:
     print("\nTrain sets ---")
