@@ -1,7 +1,8 @@
 import polars as pl
 from helpers.tests import  compare_split_column_values
-from sklearn.model_selection import train_test_split
 from helpers.argparse import get_args
+from helpers.modeling import three_way_indices
+import numpy as np
 
 args = get_args()
 
@@ -20,28 +21,14 @@ if args.verbose:
 
 
 print("\nCreating splits ---")
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
-    test_size=0.2,
-    random_state=100,
-    stratify=df["spore_print_color"]
-)
-
+splits = three_way_indices(y, stratify_column=df["spore_print_color"])
+print(splits)
 if args.verbose:
     print("\nEnsuring spore print color was stratified correctly")
-    print(compare_split_column_values(X_train, X_test, "spore_print_color"))
+    print(compare_split_column_values(df[splits["train"]], df[splits["test"]], "spore_print_color"))
+    print(compare_split_column_values(df[splits["test"]], df[splits["cal"]], "spore_print_color"))
 
 if args.write:
-    print("\nWRITE IS TRUE, saving splits ---")
-    path = "project/data/mushroom"
-    print("Printing X Train")
-    X_train.write_parquet(f"{path}/g_mushroom_xtrain.parquet")
-    print("Printing X Test")
-    X_test.write_parquet(f"{path}/g_mushroom_xtest.parquet")
-    print("Printing y Train")
-    y_train.to_frame().write_parquet(f"{path}/g_mushroom_ytrain.parquet")
-    print("Printing y Test")
-    y_test.to_frame().write_parquet(f"{path}/g_mushroom_ytest.parquet")
-    print("SUCCESS - All splits saved")
+    np.savez("project/data/mushroom/splits.npz", **splits)
 else:
     print("\nWRITE IS FALSE, skipping save step ---")
