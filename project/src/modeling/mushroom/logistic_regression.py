@@ -82,5 +82,7 @@ print("\nEVALUATING THE MODEL ---")
 model.eval()
 
 with torch.no_grad():
-    evaluate_binary_classifier(model, X_test, y_test)
+    test_logits = model(X_test)
+    test_probabilities = torch.sigmoid(test_logits)
+    evaluate_binary_classifier(test_probabilities, y_test)
 

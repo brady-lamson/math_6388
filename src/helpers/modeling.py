@@ -16,6 +16,7 @@ class BinaryMLP(nn.Module):
         return self.layers(x).squeeze(-1) # remove the last dimension when its size is 1
 
 
+# Taken and modified from course notebook 3 ---
 def three_way_indices(y, stratify_column=None, train_size=0.5, seed: int=100):
     idx = np.arange(len(y))
     test_size = 1 - train_size
@@ -27,15 +28,13 @@ def three_way_indices(y, stratify_column=None, train_size=0.5, seed: int=100):
     assert len(np.unique(np.concatenate(list(groups.values())))) == len(y)
     return groups
 
-def evaluate_binary_classifier(model, x_test, y_test, prob_cutoff=0.5):
-    test_logits = model(x_test)
-    test_probabilities = torch.sigmoid(test_logits)
-    test_predictions = (test_probabilities >= prob_cutoff).float()
 
+def evaluate_binary_classifier(test_probabilities, y_test, prob_cutoff=0.5):
+    test_predictions = (test_probabilities >= prob_cutoff).float()
     precision = precision_score(y_test, test_predictions)
     recall = recall_score(y_test, test_predictions)
     f1 = f1_score(y_test, test_predictions)
-    nll = log_loss(y_test, test_predictions)
+    nll = log_loss(y_test, y_proba=test_probabilities)
     conf_mat = confusion_matrix(y_test, test_predictions)
     ece = BinaryCalibrationError(n_bins=15)
     if test_probabilities.ndim == 1:
@@ -43,12 +42,20 @@ def evaluate_binary_classifier(model, x_test, y_test, prob_cutoff=0.5):
     ece_value = ece(test_probabilities, y_test)
     accuracy = (test_predictions == y_test).float().mean()
 
-    print(f"\nACCURACY: {accuracy.item():.2%}")
+    print(f"ACCURACY: {accuracy.item():.2%}")
     print(f"PRECISION: {precision:.2%}")
     print(f"RECALL: {recall:.2%}")
     print(f"F1-SCORE: {f1:.2%}")
     print(f"CONFUSION MATRIX:\n{conf_mat}")
     print(f"NLL: {round(nll, 5)}")
-    print(f"BCE: {ece_value.item():.5f}")
+    print(f"ECE: {ece_value.item():.5f}")
 
-    return None
+    return {
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "f1-score": f1,
+        "confusion_matrix": conf_mat,
+        "nll": nll,
+        "ece_value": ece_value,
+    }

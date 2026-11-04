@@ -5,6 +5,7 @@ from helpers.argparse import get_args
 from helpers.modeling import BinaryMLP, evaluate_binary_classifier
 import os
 import numpy as np
+from scipy.optimize import minimize_scalar
 
 args = get_args()
 
@@ -21,23 +22,26 @@ y = df.select("poisonous")
 
 X_train = X[splits["train"]].to_dummies(columns=column, drop_first=True).to_torch(return_type="tensor", dtype=dtype)
 X_test = X[splits["test"]].to_dummies(columns=column, drop_first=True).to_torch(return_type="tensor", dtype=dtype)
+X_cal = X[splits["cal"]].to_dummies(columns=column, drop_first=True).to_torch(return_type="tensor", dtype=dtype)
 y_train = y[splits["train"]].to_torch(return_type="tensor", dtype=dtype)
 y_test = y[splits["test"]].to_torch(return_type="tensor", dtype=dtype)
+y_cal = y[splits["cal"]].to_torch(return_type="tensor", dtype=dtype)
 
 if args.verbose:
     print("\nTrain sets ---")
-    print(X_train)
-    print(y_train)
     print(X_train.shape, X_train.dtype)
     print(y_train.shape, y_train.dtype)
     print(y_train.unique())
 
     print("\nTest sets ---")
-    print(X_test)
-    print(y_test)
     print(X_test.shape, X_test.dtype)
     print(y_test.shape, y_test.dtype)
     print(y_test.unique())
+
+    print("\nCalibration sets ---")
+    print(X_cal.shape, X_cal.dtype)
+    print(y_cal.shape, y_cal.dtype)
+    print(y_cal.unique())
 
 print("\nPREPARING THE MODEL ---")
 torch.manual_seed(200)
@@ -77,8 +81,44 @@ else:
 
     torch.save(model.state_dict(), MODEL_PATH)
 
-print("\nEVALUATING THE MODEL ---")
+print("\nBEGINNING TEMPERATURE OPTIMIZATION ---")
 model.eval()
-
 with torch.no_grad():
-    evaluate_binary_classifier(model, X_test, y_test)
+    cal_logits = model(X_cal)
+    test_logits = model(X_test)
+
+def calibration_nll(log_temperature):
+    # Convert log(T) to a positive temperature.
+    temperature = np.exp(log_temperature)
+
+    # Evaluate cross-entropy on calibration data only.
+    # Cross-entropy accepts logits directly, without softmax.
+    with torch.no_grad():
+        loss = loss_fn(cal_logits / temperature, y_cal.squeeze())
+
+    return loss.item()
+
+# Optimize one scalar: log(T).
+result = minimize_scalar(
+    calibration_nll,
+    bounds=(-15.0, 15.0),
+    method="bounded",
+)
+
+if not result.success:
+    raise RuntimeError(f"Temperature optimization failed: {result.message}")
+
+temperature = float(np.exp(result.x))
+print(f"Learned temperature: {temperature:.3f}")
+
+# Convert test logits into probabilities before and after calibration.
+# Use softmax because each image belongs to exactly one of ten classes.
+print("EVALUATING MODEL BEFORE/AFTER CALIBRATION ---")
+with torch.no_grad():
+    probs_before = torch.sigmoid(test_logits)
+    probs_after = torch.sigmoid(test_logits / temperature)
+
+    print("\nBefore Calibration...")
+    before_results = evaluate_binary_classifier(probs_before, y_test)
+    print("\nAfter Calibration...")
+    after_results = evaluate_binary_classifier(probs_after, y_test)
