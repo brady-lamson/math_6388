@@ -10,7 +10,7 @@ requires-python = ">=3.13, <3.14"
 dependencies = [
     "jupyter (>=1.1.1,<2.0.0)",
     "torch (>=2.13.0,<3.0.0)",
-    "polars (>=1.43.2,<2.0.0)",
+    "polars[pyarrow] (>=2.1.0,<3.0.0)",
     "numpy (>=2.5.2,<3.0.0)",
     "matplotlib (>=3.11.1,<4.0.0)",
     "torchvision (>=0.28.0,<0.29.0)",
@@ -21,7 +21,8 @@ dependencies = [
     "altair (>=6.3.0,<7.0.0)",
     "plotly (>=7.1.0,<8.0.0)",
     "kaleido (>=1.5.0,<2.0.0)",
-    "torchmetrics (>=1.9.0,<2.0.0)"
+    "torchmetrics (>=1.9.0,<2.0.0)",
+    "duckdb (>=2.0.0,<3.0.0)"
 ]
 
 [tool.poetry]

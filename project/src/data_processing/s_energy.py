@@ -35,7 +35,8 @@ df = (
     df
     .filter(
         (pl.col("Demolished") == "false") &
-        (pl.col("SiteEUI(kBtu/sf)").is_not_null())
+        (pl.col("SiteEUI(kBtu/sf)").is_not_null()) &
+        (pl.col("SiteEUIWN(kBtu/sf)").is_not_null())
     )
     .select(columns)
     .rename({
@@ -85,7 +86,7 @@ print(f"{round(dimensions_new[0]/dimensions[0] * 100, 5)}% of original {dimensio
 print(f"{round((dimensions_new[1] - num_columns_added)/dimensions[1] * 100, 5)}% of original {dimensions[1]} columns maintained.")
 
 if args.verbose:
-    print(df.head(5))
+    df.glimpse()
 
 print("\nDATA WRITE STEP ---")
 write = True
