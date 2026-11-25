@@ -21,7 +21,7 @@ if args.verbose:
 
 
 print("\nCreating splits ---")
-splits = three_way_indices(y, stratify_column=df["spore_print_color"])
+splits = three_way_indices(y, stratify_column=df["spore_print_color"], train_size=0.5, seed=100)
 print(splits)
 if args.verbose:
     print("\nEnsuring spore print color was stratified correctly")

@@ -40,7 +40,7 @@ print(f"{round((dimensions_new[1])/dimensions[1] * 100, 5)}% of original {dimens
 
 if args.verbose:
     print("\nPROCESSED DATA SNIPPET ---")
-    print(df.head())
+    print(df.glimpse())
 
 print("\nDATA WRITE STEP ---")
 if args.write:

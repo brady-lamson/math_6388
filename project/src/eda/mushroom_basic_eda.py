@@ -8,6 +8,9 @@ print("\nDATA STRUCTURE ---")
 dimensions = df.shape
 print(f"Rows: {dimensions[0]}\nColumns: {dimensions[1]}")
 
+print("\nDATA GLIMPSE ---")
+df.glimpse()
+
 print("\nMISSING DATA - Columns with nonzero null counts ---")
 print(
     df.null_count().select(

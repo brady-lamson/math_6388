@@ -80,9 +80,13 @@ else:
 
 print("\nEVALUATING THE MODEL ---")
 model.eval()
+if args.cutoff:
+    cutoff = args.cutoff
+else:
+    cutoff = 0.5
 
 with torch.no_grad():
     test_logits = model(X_test)
     test_probabilities = torch.sigmoid(test_logits)
-    evaluate_binary_classifier(test_probabilities, y_test)
+    evaluate_binary_classifier(test_probabilities, y_test, prob_cutoff=cutoff)
 

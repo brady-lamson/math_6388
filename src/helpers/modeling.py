@@ -1,9 +1,9 @@
 import torch.nn as nn
-import torch
 from sklearn.metrics import precision_score, recall_score, f1_score, log_loss, confusion_matrix
 from torchmetrics.classification import BinaryCalibrationError
 import numpy as np
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
 # Taken for course notebook 3 ---
 class BinaryMLP(nn.Module):
@@ -42,6 +42,7 @@ def evaluate_binary_classifier(test_probabilities, y_test, prob_cutoff=0.5):
     ece_value = ece(test_probabilities, y_test)
     accuracy = (test_predictions == y_test).float().mean()
 
+    print("CUTOFF:", prob_cutoff)
     print(f"ACCURACY: {accuracy.item():.2%}")
     print(f"PRECISION: {precision:.2%}")
     print(f"RECALL: {recall:.2%}")
@@ -59,3 +60,65 @@ def evaluate_binary_classifier(test_probabilities, y_test, prob_cutoff=0.5):
         "nll": nll,
         "ece_value": ece_value,
     }
+
+
+def plot_reliability(probs, labels, n_bins=10, ax=None,
+                    title="Reliability diagram"):
+    """
+    probs:  NumPy array with shape [N], predicted probabilities for class 1.
+    labels: NumPy array with shape [N], containing binary labels (0 or 1).
+    """
+    probs = np.asarray(probs).reshape(-1)
+    labels = np.asarray(labels).reshape(-1)
+
+    # Divide [0, 1] into equally spaced probability bins.
+    edges = np.linspace(0.0, 1.0, n_bins + 1)
+    bin_ids = np.digitize(probs, edges[1:-1])
+
+    mean_probability = []
+    observed_frequency = []
+    counts = []
+    ece = 0.0
+
+    for m in range(n_bins):
+        in_bin = (bin_ids == m)
+        count = in_bin.sum()
+
+        if count == 0:
+            continue
+
+        bin_probability = probs[in_bin].mean()
+        bin_frequency = labels[in_bin].mean()
+
+        mean_probability.append(bin_probability)
+        observed_frequency.append(bin_frequency)
+        counts.append(count)
+
+        # Weight the calibration gap by the fraction of observations.
+        ece += (count / len(labels)) * abs(
+            bin_frequency - bin_probability
+        )
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(5, 5))
+
+    ax.plot([0, 1], [0, 1], "k--", label="Perfect calibration")
+    ax.plot(mean_probability, observed_frequency, "o-", label="Model")
+
+    # Annotate each point with the number of observations in its bin.
+    for x, y, count in zip(mean_probability, observed_frequency, counts):
+        ax.annotate(f"n={count}", (x, y),
+                    xytext=(5, 5), textcoords="offset points", fontsize=8)
+
+    ax.set(
+        xlabel="Mean predicted probability (class 1)",
+        ylabel="Observed positive frequency",
+        title=f"{title}\nECE = {ece:.3f}",
+        xlim=(0, 1),
+        ylim=(0, 1),
+    )
+    ax.set_aspect("equal")
+    ax.grid(alpha=0.2)
+    ax.legend()
+
+    return ece

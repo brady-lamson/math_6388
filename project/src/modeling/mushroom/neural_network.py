@@ -2,10 +2,11 @@ import torch
 import torch.nn as nn
 import polars as pl
 from helpers.argparse import get_args
-from helpers.modeling import BinaryMLP, evaluate_binary_classifier
+from helpers.modeling import BinaryMLP, evaluate_binary_classifier, plot_reliability
 import os
 import numpy as np
 from scipy.optimize import minimize_scalar
+from matplotlib import pyplot as plt
 
 args = get_args()
 
@@ -114,11 +115,22 @@ print(f"Learned temperature: {temperature:.3f}")
 # Convert test logits into probabilities before and after calibration.
 # Use softmax because each image belongs to exactly one of ten classes.
 print("EVALUATING MODEL BEFORE/AFTER CALIBRATION ---")
+if args.cutoff:
+    cutoff = args.cutoff
+else:
+    cutoff = 0.5
+
 with torch.no_grad():
     probs_before = torch.sigmoid(test_logits)
     probs_after = torch.sigmoid(test_logits / temperature)
 
     print("\nBefore Calibration...")
-    before_results = evaluate_binary_classifier(probs_before, y_test)
+    before_results = evaluate_binary_classifier(probs_before, y_test, prob_cutoff=cutoff)
     print("\nAfter Calibration...")
-    after_results = evaluate_binary_classifier(probs_after, y_test)
+    after_results = evaluate_binary_classifier(probs_after, y_test, prob_cutoff=cutoff)
+
+    print("Reliability diagram:")
+    plot_reliability(probs_before.numpy(), y_test.numpy(), n_bins=15)
+    plt.show()
+    plot_reliability(probs_after.numpy(), y_test.numpy(), n_bins=15)
+    plt.show()
