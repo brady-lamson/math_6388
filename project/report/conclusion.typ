@@ -1,5 +1,9 @@
-= Discussion
+= Conclusion
 
-= Limitations
+For the classification part of the project, the results are three pretty poor models considering what their function would be. The high precision and reasonable accuracy are promising at a glance, but trying to use this model to determine what mushrooms to eat would likely end in disaster. I should mention that the low recall of the models is largely self inflicted. When first examining the page the data was downloaded from, they showed perfect scores for every kind of model. I wanted to stick to a small number of simple variables to make processing easier and also to give the model less to work with. I think it's fun to see where these models break down and I got to see a lot of that.
 
-= Conclusions
+I found it interesting how a change in training size could cause perfect results. With only 8000 total rows, a training size of $0.7$ doesn't feel extreme. I hesitate to say that this model is better despite the numbers improving. I think this is likely a case of overfitting. Simply changing the seed yields drastically different results. To improve the model I think it would be best to examine the probabilities of the false negatives and their variable makeup. Inclusion of additional variables would also be wise. I think a decision tree would also work great here.
+
+For an additional limitation, the technique used to select a probability cutoff is bad. It involved testing different thresholds against the test set. This goes against best-practice, as this counts as data leakage. Ideally a validation split would be kept around to help with this. This was done purely out of laziness, I have no excuse. 
+
+Overall the logistic regression seems to be the best. It's the simplest and, though not shown in this project, is the most interpretable of the set. Pytorch wouldn't be necessary to fit it, and would be very small and efficient. I believe if the full variable set was used that the neural network would start to come out ahead, as with that many variables the logistic regression would likely face multicollinearity and become uninterpretable anyway. 

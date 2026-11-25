@@ -32,5 +32,26 @@
     [#image("../images/mushroom/reliability_before_nbins15_seed100_train50.png")],
     [#image("../images/mushroom/reliability_nbins15_seed100_train50.png")],
   ),
-  caption: "Reliability diagram of the calibration results. Left is BEFORE, right is AFTER. bins=15, seed=100"
+  caption: "Reliability diagram of the calibration results. Left is BEFORE, right is AFTER. bins=15, seed=100, train_size=0.5"
 ) <mushroom_reliability>
+
+=== Alternate results when train_size=0.7
+
+#figure(
+  grid(
+    columns: 2,
+    [#image("../images/mushroom/reliability_before_train70.png")],
+    [#image("../images/mushroom/reliability_after_train70.png")],
+  ),
+  caption: "Alternate results. Reliability diagram of the calibration results. Left is BEFORE, right is AFTER. bins=15, seed=100, train_size=0.7"
+) <mushroom_reliability_train70>
+
+#figure(
+  include "tables/mushroom_results_train70.typ",
+  caption: "Alternate results. Classification results summary. Classification threshold = 0.7, train_size=0.7"
+) <mushroom_results_train70>
+
+#figure(
+  include "tables/mushroom_confusion_train70.typ",
+  caption: "Alternate results. Confusion matrix results. Classification threshold = 0.7, train_size=0.7"
+) <confusion_matrix_train70>
